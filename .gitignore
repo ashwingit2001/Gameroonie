@@ -1,0 +1,54 @@
+# --------------------------
+# Build output
+# --------------------------
+/build/
+/Debug/
+/Release/
+/CMakeFiles/
+/CMakeCache.txt
+cmake_install.cmake
+Makefile
+*.obj
+*.o
+*.a
+*.lib
+*.dll
+*.exe
+
+# --------------------------
+# VS Code
+# --------------------------
+.vscode/
+*.code-workspace
+
+# --------------------------
+# CMake temporary files
+# --------------------------
+/CMakeScripts/
+/Testing/
+/TestingTmp/
+/CTestTestfile.cmake
+
+# --------------------------
+# Vendored libraries
+# --------------------------
+/vendored/
+
+# --------------------------
+# Editor backup files
+# --------------------------
+*~
+*.swp
+*.swo
+*.bak
+
+# --------------------------
+# OS generated files
+# --------------------------
+.DS_Store
+Thumbs.db
+
+# --------------------------
+# Optional: data folder if large or generated at runtime
+# --------------------------
+# /data/
