@@ -27,9 +27,18 @@ int main(int argc, char* argv[]) {
     SDL_Texture* idleTex = IMG_LoadTexture(state.renderer, "../../data/idle.png");
     SDL_SetTextureScaleMode(idleTex, SDL_SCALEMODE_NEAREST);
 
+    // setup game data
+    const bool* keys = SDL_GetKeyboardState(nullptr);
+    float playerX = 150;
+    const float floor = state.logH;
+    uint64_t prevTime = SDL_GetTicks();
+    bool flipHorizontal = false;
+
     // game loop
     bool running = true;
     while(running) {
+        uint64_t nowTime = SDL_GetTicks();
+        float deltaTime = (nowTime - prevTime) / 1000.0f;
         SDL_Event event {0};
         while(SDL_PollEvent(&event)) {
             switch (event.type)
@@ -49,28 +58,43 @@ int main(int argc, char* argv[]) {
             }
         }
 
+        // handle movement
+        float moveAmount = 0;
+        if(keys[SDL_SCANCODE_A]) {
+            moveAmount += -75.0f;
+            flipHorizontal = true;
+        }
+        if(keys[SDL_SCANCODE_D]) {
+            moveAmount += 75.0f;
+            flipHorizontal = false;
+        }
+        playerX +=moveAmount * deltaTime;
+
         // perform drawing commands
         SDL_SetRenderDrawColor(state.renderer, 20, 10, 30, 255);
         SDL_RenderClear(state.renderer);
 
+        const float spriteSize = 32;
         SDL_FRect src {
             .x = 0,
             .y = 0,
-            .w = 32,
-            .h = 32
+            .w = spriteSize,
+            .h = spriteSize
         };
 
         SDL_FRect dst {
-            .x = 0,
-            .y = 0,
-            .w = 32,
-            .h = 32
+            .x = playerX,
+            .y = floor - spriteSize,
+            .w = spriteSize,
+            .h = spriteSize
         };
 
-        SDL_RenderTexture(state.renderer, idleTex, &src, &dst);
+        SDL_RenderTextureRotated(state.renderer, idleTex, &src, &dst, 0, nullptr, 
+            flipHorizontal? SDL_FLIP_HORIZONTAL : SDL_FLIP_NONE);
         
         //swap buffers and present
         SDL_RenderPresent(state.renderer);
+        prevTime = nowTime;
     }
 
     SDL_DestroyTexture(idleTex);
@@ -86,7 +110,7 @@ bool initialize(SDLState& state) {
     }
 
     // create window
-    state.win = SDL_CreateWindow("SDL3 Window", state.width, state.height, SDL_WINDOW_RESIZABLE);
+    state.win = SDL_CreateWindow("SDL Window", state.width, state.height, SDL_WINDOW_RESIZABLE);
     if(!state.win) {
         SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Error", "Error initializing window", state.win);
         cleanup(state);
