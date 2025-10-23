@@ -2,6 +2,10 @@
 #include <SDL3/SDL_main.h>
 #include <SDL3_image/SDL_image.h>
 #include <iostream>
+#include <vector>
+#include <string>
+
+#include "animation.h"
 
 struct SDLState {
     SDL_Window* win;
@@ -12,7 +16,36 @@ struct SDLState {
 bool initialize(SDLState& state);
 void cleanup(SDLState& state);
 
+struct Resources {
+    const int ANIM_PLAYER_IDLE = 0;
+    std::vector<Animation> playerAnims;
+
+    std::vector<SDL_Texture *> textures;
+    SDL_Texture* idleTex;
+
+    SDL_Texture* loadTexture(SDL_Renderer* renderer, const std::string& filepath) {
+        SDL_Texture* tex = IMG_LoadTexture(renderer, filepath.c_str());
+        SDL_SetTextureScaleMode(tex, SDL_SCALEMODE_NEAREST);
+        textures.push_back(tex);
+        return tex;
+    }
+
+    void load(SDLState &state) {
+        playerAnims.resize(5);
+        playerAnims[ANIM_PLAYER_IDLE] = Animation(8, 1.6f);
+
+        idleTex = loadTexture(state.renderer, "../../data/idle.png");
+    }
+
+    void unload() {
+        for(SDL_Texture* tex : textures) {
+            SDL_DestroyTexture(tex);
+        }
+    }
+};
+
 int main(int argc, char* argv[]) {
+    Animation a;
     SDLState state;
     state.width = 1600;
     state.height = 900;
@@ -24,8 +57,8 @@ int main(int argc, char* argv[]) {
     }
     
     // load game assets
-    SDL_Texture* idleTex = IMG_LoadTexture(state.renderer, "../../data/idle.png");
-    SDL_SetTextureScaleMode(idleTex, SDL_SCALEMODE_NEAREST);
+    Resources res;
+    res.load(state);
 
     // setup game data
     const bool* keys = SDL_GetKeyboardState(nullptr);
@@ -89,7 +122,7 @@ int main(int argc, char* argv[]) {
             .h = spriteSize
         };
 
-        SDL_RenderTextureRotated(state.renderer, idleTex, &src, &dst, 0, nullptr, 
+        SDL_RenderTextureRotated(state.renderer, res.idleTex, &src, &dst, 0, nullptr, 
             flipHorizontal? SDL_FLIP_HORIZONTAL : SDL_FLIP_NONE);
         
         //swap buffers and present
@@ -97,7 +130,7 @@ int main(int argc, char* argv[]) {
         prevTime = nowTime;
     }
 
-    SDL_DestroyTexture(idleTex);
+    res.unload();
     cleanup(state);
     return 0;
 }
